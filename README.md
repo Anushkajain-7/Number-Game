@@ -1,5 +1,4 @@
-# 🔮 Guess My Number (Gen-Z Edition)
-
+# 🔮 Guess My Number 
 A dynamic web game that guesses your secret number (0-9) using a **Binary Tree** decision path. Built with Python (Flask) and a modern, gradient-rich UI.
 
 ## 🚀 Setup & Run
