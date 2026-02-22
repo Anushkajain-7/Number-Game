@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Playing... 🎮</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+    <div class="container">
+        <div class="glass-card">
+            <h3 id="step-indicator">Step 1</h3>
+            <h2 id="question-text"
+                style="min-height: 80px; display: flex; align-items: center; justify-content: center;">
+                Loading...
+            </h2>
+
+            <div class="actions">
+                <button onclick="answer('yes')" class="btn btn-yes">YES 👍</button>
+                <button onclick="answer('no')" class="btn btn-no">NO 👎</button>
+            </div>
+
+            <div id="path-sidebar" class="path-container" style="display:none;">
+                <!-- Filled by JS -->
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    <script>
+        // Start the game on load
+        window.onload = startGame;
+    </script>
+</body>
+
+</html>

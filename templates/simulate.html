@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulate Mode // SYSTEM</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
+</head>
+
+<body>
+    <div class="container" style="max-width: 900px;">
+        <div class="glass-card">
+            <h2><i class="fas fa-network-wired"></i> Binary Tree Logic Processor</h2>
+
+            <div style="margin: 20px 0; display:flex; justify-content:center; gap:20px; align-items:center;">
+                <label style="font-family:var(--font-mono); color:#aaa;">TARGET:</label>
+                <select id="sim-number"
+                    style="background:#000; color:var(--neon-primary); border:1px solid var(--neon-primary); padding:10px 20px; font-family:var(--font-mono); font-size:1.2rem;">
+                    <option value="0">0</option>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                    <option value="7">7</option>
+                    <option value="8">8</option>
+                    <option value="9">9</option>
+                </select>
+                <button onclick="runSimulation()" class="btn btn-yes"
+                    style="margin:0; width:auto; font-size:1rem; padding: 12px 25px;">RUN SIMULATION</button>
+            </div>
+
+            <!-- Dynamic Question Display Box -->
+            <div id="active-question-box" style="
+                min-height: 80px; 
+                background: rgba(0,0,0,0.6); 
+                border: 1px solid var(--neon-secondary); 
+                box-shadow: 0 0 15px rgba(214, 0, 255, 0.1);
+                border-radius: 8px; 
+                margin-bottom: 20px; 
+                display: flex; 
+                align-items: center; 
+                justify-content: center;
+                flex-direction: column;
+                padding: 15px;
+                opacity: 0;
+                transition: opacity 0.5s;
+            ">
+                <div
+                    style="font-family:var(--font-mono); color:var(--neon-secondary); font-size:0.8rem; margin-bottom:5px;">
+                    CURRENT NODE ANALYSIS</div>
+                <div id="active-question-text"
+                    style="font-size: 1.4rem; color: #fff; font-weight: bold; text-align: center;">Waiting...</div>
+            </div>
+
+            <div id="tree-container"
+                style="position: relative; height: 600px; background: rgba(0,0,0,0.3); border-radius: 8px; overflow: hidden; border: 1px solid rgba(255,255,255,0.05);">
+                <div id="tree-canvas" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></div>
+                <div id="status-log"
+                    style="position:absolute; bottom:10px; left:10px; font-family:var(--font-mono); font-size:0.7rem; color:#666;">
+                    System idle. Select a number.
+                </div>
+            </div>
+
+            <a href="/" class="secondary-link"
+                style="display:block; margin-top:20px; font-family:var(--font-mono); color:var(--text-main); text-decoration:none;">&lt;
+                SYSTEM ROOT</a>
+        </div>
+    </div>
+
+    <script>
+        async function runSimulation() {
+            const num = document.getElementById('sim-number').value;
+            const canvas = document.getElementById('tree-canvas');
+            const log = document.getElementById('status-log');
+            const qBox = document.getElementById('active-question-box');
+            const qText = document.getElementById('active-question-text');
+
+            // Clear previous
+            canvas.innerHTML = '';
+            log.innerHTML = 'Initialising algorithm...';
+            qBox.style.opacity = 1;
+            qText.innerHTML = "Initializing...";
+
+            const res = await fetch('/api/simulate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ number: num })
+            });
+            const data = await res.json();
+
+            if (!data.path) return;
+
+            // Positioning Logic
+            let x = 50; // Percent
+            let y = 5; // Percent
+            let level = 0;
+
+            // Initial Root Node
+            // We can assume the first item in path is the root question.
+
+            for (let i = 0; i < data.path.length; i++) {
+                const step = data.path[i];
+                log.innerHTML = `> Step ${step.step}: ${step.text} => ${step.answer}`;
+
+                // Update Question Box
+                qText.innerHTML = step.text;
+                qText.style.color = '#fff';
+
+                // Highlight logic box
+                qBox.style.boxShadow = "0 0 20px var(--neon-primary)";
+                setTimeout(() => qBox.style.boxShadow = "none", 500);
+
+                // Draw Node
+                const isGuess = step.answer === 'GUESS';
+                const nodeText = isGuess ? step.guess_value : '?';
+                const nodeType = isGuess ? 'guess' : 'active';
+
+                // Append Node to Canvas
+                createNodeEl(canvas, nodeText, x, y, nodeType, step.text);
+
+                if (isGuess) {
+                    qText.innerHTML = `🏁 TARGET FOUND: <span style="color:var(--neon-primary); font-size:2rem;">${step.guess_value}</span>`;
+                    log.innerHTML = "SEQUENCE COMPLETE.";
+                    return; // Stop
+                }
+
+                await new Promise(r => setTimeout(r, 1500)); // Read time
+
+                // Calc Next Line
+                const spread = 20 / (level + 1.2);
+                let nextX = step.answer === 'YES' ? x - spread : x + spread;
+                let nextY = y + 20;
+
+                // Draw Line
+                createLine(canvas, x, y, nextX, nextY, step.answer);
+
+                x = nextX;
+                y = nextY;
+                level++;
+            }
+        }
+
+        function createNodeEl(canvas, text, x, y, type, tooltip) {
+            const node = document.createElement('div');
+            node.className = `tree-node-visual ${type}`;
+            node.style.left = x + '%';
+            node.style.top = y + '%';
+            node.style.transform = 'translate(-50%, -50%) scale(0)'; // Start small
+            node.innerHTML = text;
+            node.title = tooltip;
+
+            // Animation
+            setTimeout(() => {
+                node.style.transform = 'translate(-50%, -50%) scale(1)';
+            }, 50);
+
+            canvas.appendChild(node);
+        }
+
+        function createLine(canvas, x1, y1, x2, y2, label) {
+            const svgNS = "http://www.w3.org/2000/svg";
+            let svg = canvas.querySelector('svg');
+            if (!svg) {
+                svg = document.createElementNS(svgNS, "svg");
+                svg.style.position = "absolute";
+                svg.style.top = 0;
+                svg.style.left = 0;
+                svg.style.width = "100%";
+                svg.style.height = "100%";
+                svg.style.zIndex = 0;
+                canvas.appendChild(svg);
+            }
+
+            const line = document.createElementNS(svgNS, "line");
+            line.setAttribute("x1", x1 + "%");
+            line.setAttribute("y1", y1 + "%");
+            line.setAttribute("x2", x2 + "%");
+            line.setAttribute("y2", y2 + "%");
+            line.setAttribute("stroke", label === 'YES' ? "#00ffcc" : "#ff0055");
+            line.setAttribute("stroke-width", "3");
+
+            // Animate Line
+            const length = Math.sqrt(Math.pow((x2 - x1) * 10, 2) + Math.pow((y2 - y1) * 10, 2)); // rough spacing
+            line.setAttribute("stroke-dasharray", "100");
+            line.setAttribute("stroke-dashoffset", "100");
+
+            // Animation via CSS or JS
+            line.style.transition = "stroke-dashoffset 1s linear";
+            setTimeout(() => line.setAttribute("stroke-dashoffset", "0"), 50);
+
+            svg.appendChild(line);
+
+            // Label
+            const text = document.createElement('div');
+            text.innerHTML = label;
+            text.style.position = 'absolute';
+            text.style.left = ((x1 + x2) / 2) + '%';
+            text.style.top = ((y1 + y2) / 2) + '%';
+            text.style.color = label === 'YES' ? "#00ffcc" : "#ff0055";
+            text.style.background = "#000";
+            text.style.padding = "2px 5px";
+            text.style.borderRadius = "4px";
+            text.style.fontSize = '0.7rem';
+            text.style.fontWeight = 'bold';
+            text.style.transform = 'translate(-50%, -50%)';
+            canvas.appendChild(text);
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guess My Number 🔮</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="glass-card">
+            <h1>🔮 Mind Reader</h1>
+            <p class="instruction">Think of a number between <strong>0 and 9</strong>.</p>
+            <p class="instruction">I will guess it using my big brain (binary tree) logic!</p>
+            
+            <a href="/game" class="btn btn-primary" style="margin-top: 20px; display:inline-block; text-decoration:none;">Start Game 🚀</a>
+            
+            <a href="/simulate" class="secondary-link">Show me how it works (Simulation) 🤖</a>
+        </div>
+    </div>
+</body>
+</html>

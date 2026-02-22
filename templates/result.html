@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>I Guessed It! 🎉</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+    <div class="container">
+        <div class="glass-card">
+            <h2>Your number is...</h2>
+
+            <div id="final-number" class="number-reveal">
+                <!-- Injected via query param or JS, but for this setup we use JS logic on previous page to redirect here or just dynamic DOM. 
+                     Wait, I planned to use a separate template. Let's make this page accept query params or local storage for simplicity, 
+                     OR just use the same single-page logic. 
+                     
+                     Actually, to keep it clean, let's have the game page swap to "Result View" dynamically? 
+                     NO, the prompt asked for separate screens in "Website flow". 
+                     So I will pass data via URL params for simplicity since it's client-side harmless data.
+                -->
+                ?
+            </div>
+
+            <p>Was I right? Of course I was. 😎</p>
+
+            <div id="full-path" class="path-container">
+                <!-- Filled by JS -->
+            </div>
+
+            <a href="/" class="btn btn-primary" style="margin-top:20px; text-decoration:none;">Play Again 🔄</a>
+        </div>
+    </div>
+
+    <script>
+        // Simple script to populate from URL params
+        const params = new URLSearchParams(window.location.search);
+        const guess = params.get('guess');
+        document.getElementById('final-number').textContent = guess;
+
+        // Reconstruct path from session storage or params? 
+        // Path might be too long for URL. Let's use sessionStorage.
+        const pathData = sessionStorage.getItem('gamePath');
+        if (pathData) {
+            const pathList = JSON.parse(pathData);
+            const container = document.getElementById('full-path');
+            pathList.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'path-step';
+                div.innerHTML = `Q: ${item.question} <span class="${item.answer === 'YES' ? 'path-answer-yes' : 'path-answer-no'}">${item.answer}</span>`;
+                container.appendChild(div);
+            });
+        }
+    </script>
+</body>
+
+</html>
